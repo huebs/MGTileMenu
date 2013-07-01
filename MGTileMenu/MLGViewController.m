@@ -10,12 +10,9 @@
 
 @implementation MLGViewController
 
-
 @synthesize tileController;
 
-
 #pragma mark - TileMenu delegate
-
 
 - (NSInteger)numberOfTilesInMenu:(MGTileMenuController *)tileMenu
 {
@@ -23,19 +20,21 @@
 }
 
 
-- (UIImage *)imageForTile:(NSInteger)tileNumber inMenu:(MGTileMenuController *)tileMenu
+- (UIImage *)imageForTile:(NSInteger)tileNumber
+				   inMenu:(MGTileMenuController *)tileMenu
 {
-	NSArray *images = [NSArray arrayWithObjects:
-					   @"twitter", 
+	NSArray *images = @[
+					   @"twitter",
 					   @"key", 
 					   @"speech", 
 					   @"magnifier", 
 					   @"scissors", 
 					   @"actions", 
 					   @"Text", 
-					   @"heart", 
-					   @"gear", 
-					   nil];
+					   @"heart",
+					   @"gear",
+					];
+	
 	if (tileNumber >= 0 && tileNumber < images.count) {
 		return [UIImage imageNamed:[images objectAtIndex:tileNumber]];
 	}
@@ -43,10 +42,10 @@
 	return [UIImage imageNamed:@"Text"];
 }
 
-
-- (NSString *)labelForTile:(NSInteger)tileNumber inMenu:(MGTileMenuController *)tileMenu
+- (NSString *)labelForTile:(NSInteger)tileNumber
+					inMenu:(MGTileMenuController *)tileMenu
 {
-	NSArray *labels = [NSArray arrayWithObjects:
+	NSArray *labels = @[
 					   @"Twitter", 
 					   @"Key", 
 					   @"Speech balloon", 
@@ -55,8 +54,9 @@
 					   @"Actions", 
 					   @"Text", 
 					   @"Heart", 
-					   @"Settings", 
-					   nil];
+					   @"Settings",
+					];
+	
 	if (tileNumber >= 0 && tileNumber < labels.count) {
 		return [labels objectAtIndex:tileNumber];
 	}
@@ -65,9 +65,10 @@
 }
 
 
-- (NSString *)descriptionForTile:(NSInteger)tileNumber inMenu:(MGTileMenuController *)tileMenu
+- (NSString *)descriptionForTile:(NSInteger)tileNumber
+						  inMenu:(MGTileMenuController *)tileMenu
 {
-	NSArray *hints = [NSArray arrayWithObjects:
+	NSArray *hints = @[
 					   @"Sends a tweet", 
 					   @"Unlock something", 
 					   @"Sends a message", 
@@ -76,8 +77,8 @@
 					   @"Shows export options", 
 					   @"Adds some text", 
 					   @"Marks something as a favourite", 
-					   @"Shows some settings", 
-					   nil];
+					   @"Shows some settings",
+					];
 	if (tileNumber >= 0 && tileNumber < hints.count) {
 		return [hints objectAtIndex:tileNumber];
 	}
@@ -86,7 +87,8 @@
 }
 
 
-- (UIImage *)backgroundImageForTile:(NSInteger)tileNumber inMenu:(MGTileMenuController *)tileMenu
+- (UIImage *)backgroundImageForTile:(NSInteger)tileNumber
+							 inMenu:(MGTileMenuController *)tileMenu
 {
 	if (tileNumber == 1) {
 		return [UIImage imageNamed:@"purple_gradient"];
@@ -106,7 +108,8 @@
 }
 
 
-- (BOOL)isTileEnabled:(NSInteger)tileNumber inMenu:(MGTileMenuController *)tileMenu
+- (BOOL)isTileEnabled:(NSInteger)tileNumber
+			   inMenu:(MGTileMenuController *)tileMenu
 {
 	if (tileNumber == 2 || tileNumber == 6) {
 		return NO;
@@ -116,7 +119,8 @@
 }
 
 
-- (void)tileMenu:(MGTileMenuController *)tileMenu didActivateTile:(NSInteger)tileNumber
+- (void)tileMenu:(MGTileMenuController *)tileMenu
+ didActivateTile:(NSInteger)tileNumber
 {
 	NSLog(@"Tile %d activated (%@)", tileNumber, [self labelForTile:tileNumber inMenu:tileController]);
 }
@@ -131,7 +135,8 @@
 #pragma mark - Gesture handling
 
 
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+	   shouldReceiveTouch:(UITouch *)touch
 {
 	// Ensure that only touches on our own view are sent to the gesture recognisers.
 	if (touch.view == self.view) {
@@ -146,7 +151,8 @@
 {
 	// Find out where the gesture took place.
 	CGPoint loc = [gestureRecognizer locationInView:self.view];
-	if ([gestureRecognizer isMemberOfClass:[UITapGestureRecognizer class]] && ((UITapGestureRecognizer *)gestureRecognizer).numberOfTapsRequired == 2) {
+	if ([gestureRecognizer isMemberOfClass:[UITapGestureRecognizer class]]
+		&& ((UITapGestureRecognizer *)gestureRecognizer).numberOfTapsRequired == 2) {
 		// This was a double-tap.
 		// If there isn't already a visible TileMenu, we should create one if necessary, and show it.
 		if (!tileController || tileController.isVisible == NO) {
@@ -179,12 +185,14 @@
     [super viewDidLoad];
 	
 	// Set up recognizers.
-	UITapGestureRecognizer *doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleGesture:)];
+	UITapGestureRecognizer *doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self
+																						  action:@selector(handleGesture:)];
 	doubleTapRecognizer.numberOfTapsRequired = 2;
 	doubleTapRecognizer.delegate = self;
 	[self.view addGestureRecognizer:doubleTapRecognizer];
 	
-	UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleGesture:)];
+	UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self
+																					action:@selector(handleGesture:)];
 	tapRecognizer.delegate = self;
 	[self.view addGestureRecognizer:tapRecognizer];
 }

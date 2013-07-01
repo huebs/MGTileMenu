@@ -10,23 +10,28 @@
 #import "MGTileMenuView.h"
 #import <QuartzCore/QuartzCore.h>
 
+#pragma mark Various Keys for Internal Use
 
-// Various keys for internal use.
-#define MG_ANIMATION_APPEAR		@"Appear"
-#define MG_ANIMATION_DISAPPEAR	@"Disappear"
-#define MG_ANIMATION_TILES		@"Tiles"
-#define MG_ANIMATION_TILE_LAYER	@"TileLayer"
-#define MG_ANIMATION_TILE_INDEX	@"TileIndex"
-// Geometry and appearance.
-#define MG_PARENTVIEW_EDGE_INSET	3.0 // minimum inset in pixels from edges of parent view
-#define MG_TILES_PER_PAGE	5 // not including paging tile (or Close button)
-#define MG_DISABLED_TILE_OPACITY	0.65 // from 0.0 (fully transparent/hidden) to 1.0 (fully opaque/visible)
-// Timing.
-#define MG_ANIMATION_DURATION	0.15 // seconds
-#define MG_ACTIVATION_DISMISS_DELAY	0.25 // seconds; delay between activating a tile and auto-dismissing the menu (if appropriate)
+#define MG_ANIMATION_APPEAR			@"Appear"
+#define MG_ANIMATION_DISAPPEAR		@"Disappear"
+#define MG_ANIMATION_TILES			@"Tiles"
+#define MG_ANIMATION_TILE_LAYER		@"TileLayer"
+#define MG_ANIMATION_TILE_INDEX		@"TileIndex"
 
+#pragma mark Geometry and Appearance
 
-// Notifications.
+#define MG_PARENTVIEW_EDGE_INSET	3.0		// minimum inset in pixels from edges of parent view
+#define MG_TILES_PER_PAGE			5		// not including paging tile (or Close button)
+#define MG_DISABLED_TILE_OPACITY	0.65	// from 0.0 (fully transparent/hidden) to 1.0 (fully opaque/visible)
+
+#pragma mark Timing
+
+#define MG_ANIMATION_DURATION		0.15	// Seconds
+#define MG_ACTIVATION_DISMISS_DELAY	0.25	// Seconds; delay between activating a tile and auto-dismissing
+											// the menu (if appropriate).
+
+#pragma mark - Notifications
+
 NSString *MGTileMenuWillDisplayNotification;
 NSString *MGTileMenuDidDisplayNotification;
 NSString *MGTileMenuWillDismissNotification;
@@ -37,34 +42,47 @@ NSString *MGTileMenuDidDeselectTileNotification;
 NSString *MGTileMenuWillSwitchToPageNotification;
 NSString *MGTileMenuDidSwitchToPageNotification;
 
+@interface MGTileMenuController()
+{
+	UIButton			*_closeButton;
+	NSMutableArray		*_tileButtons;
+	UIButton			*_pageButton;
+	BOOL				_tilesArranged;
+	BOOL				_animatingTiles;
+	BOOL				_appeared;
+	BOOL				_tileAnimationInterrupted;
+	NSMutableArray		*_animationOrder;
+	BOOL				_singlePageMaxTiles;			// Indicates the exceptional situation of having exactly 6 tiles.
+}
+
+@end
 
 @implementation MGTileMenuController
 
-@synthesize delegate = _delegate;
-@synthesize centerPoint = _centerPoint;
-@synthesize parentView = _parentView;
-@synthesize isVisible = _isVisible;
-@synthesize currentPage = _currentPage;
+@synthesize delegate =								_delegate;
+@synthesize centerPoint =							_centerPoint;
+@synthesize parentView =							_parentView;
+@synthesize isVisible =								_isVisible;
+@synthesize currentPage =							_currentPage;
 
-@synthesize dismissAfterTileActivated = _dismissAfterTileActivated;
-@synthesize rightHanded = _rightHanded;
-@synthesize shadowsEnabled = _shadowsEnabled;
-@synthesize tileSide = _tileSide;
-@synthesize tileGap = _tileGap;
-@synthesize cornerRadius = _cornerRadius;
-@synthesize tileGradient = _tileGradient;
-@synthesize selectionBorderWidth = _selectionBorderWidth;
-@synthesize selectionGradient = _selectionGradient;
-@synthesize bezelColor = _bezelColor;
-@synthesize closeButtonImage = _closeButtonImage;
-@synthesize selectedCloseButtonImage = _selectedCloseButtonImage;
-@synthesize pageButtonImage = _pageButtonImage;
-@synthesize shouldMoveToStayVisibleAfterRotation = _shouldMoveToStayVisibleAfterRotation;
-@synthesize closeButtonVisible = _closeButtonVisible;
+@synthesize dismissAfterTileActivated =				_dismissAfterTileActivated;
+@synthesize rightHanded =							_rightHanded;
+@synthesize shadowsEnabled =						_shadowsEnabled;
+@synthesize tileSide =								_tileSide;
+@synthesize tileGap =								_tileGap;
+@synthesize cornerRadius =							_cornerRadius;
+@synthesize tileGradient =							_tileGradient;
+@synthesize selectionBorderWidth =					_selectionBorderWidth;
+@synthesize selectionGradient =						_selectionGradient;
+@synthesize bezelColor =							_bezelColor;
+@synthesize closeButtonImage =						_closeButtonImage;
+@synthesize selectedCloseButtonImage =				_selectedCloseButtonImage;
+@synthesize pageButtonImage =						_pageButtonImage;
+@synthesize shouldMoveToStayVisibleAfterRotation =	_shouldMoveToStayVisibleAfterRotation;
+@synthesize closeButtonVisible =					_closeButtonVisible;
 
 
-#pragma mark - Creation and destruction
-
+#pragma mark - Creation and Destruction
 
 - (id)initWithDelegate:(id<MGTileMenuDelegate>)theDelegate
 {
@@ -81,41 +99,62 @@ NSString *MGTileMenuDidSwitchToPageNotification;
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        _centerPoint = CGPointZero;
-        _isVisible = NO;
-		_currentPage = 0;
-        _dismissAfterTileActivated = YES;
-        _rightHanded = YES;
-        _shadowsEnabled = YES;
-        _tileSide = 72;
-        _tileGap = 20;
-		_cornerRadius = 12.0;
-		_tileGradient = MGCreateGradientWithColors([UIColor colorWithRed:0.28 green:0.67 blue:0.90 alpha:1.0], 
-												   [UIColor colorWithRed:0.19 green:0.46 blue:0.76 alpha:1.0]);		
-		_selectionBorderWidth = 5;
-		_selectionGradient = MGCreateGradientWithColors([UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0], 
-														[UIColor colorWithRed:0.93 green:0.93 blue:0.93 alpha:1.0]);
-		_bezelColor = [UIColor colorWithWhite:0 alpha:0.50];
-        _closeButtonImage = nil;
-        _selectedCloseButtonImage = nil;
-        _pageButtonImage = nil;
-		_shouldMoveToStayVisibleAfterRotation = YES;
-		_closeButtonVisible = YES;
+        _centerPoint							= CGPointZero;
+        
+		_isVisible								= NO;
+		_closeButtonVisible						= YES;
+        _rightHanded							= YES;
+        _dismissAfterTileActivated				= YES;
+        _shadowsEnabled							= YES;
+		_shouldMoveToStayVisibleAfterRotation	= YES;
+		_singlePageMaxTiles						= NO;
+		
+		_currentPage							= 0;
+        _tileSide								= 72;
+        _tileGap								= 20;
+		_cornerRadius							= 12.0;
+		_selectionBorderWidth					= 5;
+		
+		_closeButtonImage						= nil;
+        _selectedCloseButtonImage				= nil;
+        _pageButtonImage						= nil;
+		
+		_tileGradient		= MGCreateGradientWithColors([UIColor colorWithRed:0.28
+																		 green:0.67
+																		  blue:0.90
+																		 alpha:1.0],
+												   
+														 [UIColor colorWithRed:0.19
+																		 green:0.46
+																		  blue:0.76
+																		 alpha:1.0]);
+		
+		_selectionGradient	= MGCreateGradientWithColors([UIColor colorWithRed:1.0
+																		 green:1.0
+																		  blue:1.0
+																		 alpha:1.0],
+														
+														 [UIColor colorWithRed:0.93
+																		 green:0.93
+																		  blue:0.93
+																		 alpha:1.0]);
+		_bezelColor			= [UIColor colorWithWhite:0
+												alpha:0.50];
 		
 		// Clockwise from left.
-		_animationOrder = [NSMutableArray arrayWithObjects:
-						   [NSNumber numberWithInteger:3], 
-						   [NSNumber numberWithInteger:0], 
-						   [NSNumber numberWithInteger:1], 
-						   [NSNumber numberWithInteger:2], 
-						   [NSNumber numberWithInteger:4], 
-						  nil];
 		
-		_singlePageMaxTiles = NO;
+		_animationOrder		= [NSMutableArray arrayWithArray:
+							   @[
+								[NSNumber numberWithInteger:3],
+								[NSNumber numberWithInteger:0],
+								[NSNumber numberWithInteger:1],
+								[NSNumber numberWithInteger:2],
+								[NSNumber numberWithInteger:4],
+							   ]];
     }
+	
     return self;
 }
-
 
 - (void)dealloc
 {
@@ -123,18 +162,16 @@ NSString *MGTileMenuDidSwitchToPageNotification;
 	CGGradientRelease(_selectionGradient);
 }
 
-
 - (void)didReceiveMemoryWarning
 {
     // Releases the view if it doesn't have a superview.
     [super didReceiveMemoryWarning];
 }
 
-
-#pragma mark - View lifecycle
-
+#pragma mark - View Lifecycle
 
 // Implement loadView to create a view hierarchy programmatically, without using a nib.
+
 - (void)loadView
 {
 	// Bezel
@@ -177,75 +214,104 @@ NSString *MGTileMenuDidSwitchToPageNotification;
 	[self.view addSubview:_closeButton];
 	
 	// Tiles
+	
 	_tileButtons = [NSMutableArray arrayWithCapacity:6];
+	
 	UIImage *tileImage = [self tileBackgroundImageHighlighted:NO];
 	UIButton *tileButton;
+	
 	CGRect tileFrame = CGRectZero;
 	tileFrame.size = tileImage.size;
 	
 	NSInteger j;
 	NSInteger numTiles = MG_TILES_PER_PAGE;
+	
 	if (_singlePageMaxTiles) {
 		numTiles++;
 		[_animationOrder insertObject:[NSNumber numberWithInteger:5] atIndex:0];
 	}
+	
 	for (int i = 0; i < (numTiles + 1); i++) {
 		tileButton = [UIButton buttonWithType:UIButtonTypeCustom];
 		tileButton.userInteractionEnabled = NO;
 		tileButton.tag = i;
 		tileButton.frame = [self frameForCenteredTile];
+		
 		if (i == numTiles) {
 			// Page-switching button.
 			tileButton.layer.zPosition = 0;
 			tileButton.frame = [self frameForTileAtIndex:i];
-			[tileButton addTarget:self action:@selector(goToNextPage) forControlEvents:UIControlEventTouchUpInside];
+			
+			[tileButton addTarget:self action:@selector(goToNextPage)
+				 forControlEvents:UIControlEventTouchUpInside];
+			
 			_pageButton = tileButton;
 			UIImage *ellipsisImage;
+			
 			if (_pageButtonImage != nil) {
 				ellipsisImage = _pageButtonImage;
 			} else {
 				ellipsisImage = [UIImage imageNamed:@"ellipsis"];
 			}
-			[_pageButton setImage:ellipsisImage forState:UIControlStateNormal];
-			[_pageButton setImage:ellipsisImage forState:UIControlStateHighlighted];
+			
+			[_pageButton setImage:ellipsisImage
+						 forState:UIControlStateNormal];
+			
+			[_pageButton setImage:ellipsisImage
+						 forState:UIControlStateHighlighted];
+			
 			UIImage *tileHighlightedImage = [self tileBackgroundImageHighlighted:YES];
-			[tileButton setBackgroundImage:tileImage forState:UIControlStateNormal];
-			[tileButton setBackgroundImage:tileHighlightedImage forState:UIControlStateHighlighted];
+			
+			[tileButton setBackgroundImage:tileImage
+								  forState:UIControlStateNormal];
+			
+			[tileButton setBackgroundImage:tileHighlightedImage
+								  forState:UIControlStateHighlighted];
+			
 		} else {
+			
 			j = [[_animationOrder objectAtIndex:i] integerValue];
+			
 			if (_rightHanded) {
 				tileButton.layer.zPosition = (numTiles - [_animationOrder indexOfObject:[NSNumber numberWithInt:i]]);
 			} else {
 				tileButton.layer.zPosition = [_animationOrder indexOfObject:[NSNumber numberWithInt:i]];
 			}
-			[tileButton addTarget:self action:@selector(tileActivated:) forControlEvents:UIControlEventTouchUpInside];
-			[tileButton addTarget:self action:@selector(tileSelected:) 
+			
+			[tileButton addTarget:self
+						   action:@selector(tileActivated:)
+				 forControlEvents:UIControlEventTouchUpInside];
+			
+			[tileButton addTarget:self
+						   action:@selector(tileSelected:)
 				 forControlEvents:UIControlEventTouchDown | UIControlEventTouchDragEnter];
-			[tileButton addTarget:self action:@selector(tileDeselected:) 
+			
+			[tileButton addTarget:self
+						   action:@selector(tileDeselected:)
 				 forControlEvents:UIControlEventTouchUpOutside | UIControlEventTouchDragExit];
+			
 			[_tileButtons addObject:tileButton];
 		}
+		
 		[self.view addSubview:tileButton];
 	}
 	
 	_appeared = NO;
 }
 
-
 - (void)viewDidUnload
 {
 	[super viewDidUnload];
     
-	self.bezelColor = nil;
-	self.closeButtonImage = nil;
-	self.pageButtonImage = nil;
-	self.selectedCloseButtonImage = nil;
-	_animationOrder = nil;
-	_closeButton = nil;
-	_pageButton = nil;
-	_tileButtons = nil;
+	self.bezelColor					= nil;
+	self.closeButtonImage			= nil;
+	self.pageButtonImage			= nil;
+	self.selectedCloseButtonImage	= nil;
+	_animationOrder					= nil;
+	_closeButton					= nil;
+	_pageButton						= nil;
+	_tileButtons					= nil;
 }
-
 
 - (void)viewWillAppear:(BOOL)animated
 {
@@ -255,7 +321,6 @@ NSString *MGTileMenuDidSwitchToPageNotification;
 											   object:nil];
 }
 
-
 - (void)viewWillDisappear:(BOOL)animated
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self 
@@ -263,9 +328,7 @@ NSString *MGTileMenuDidSwitchToPageNotification;
 												  object:nil];
 }
 
-
 #pragma mark - Rotation
-
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
@@ -289,13 +352,15 @@ NSString *MGTileMenuDidSwitchToPageNotification;
 
 #pragma mark - Utilities
 
-
-// Moves 'inner' rect the minimum distance to ensure it fully overlaps (is contained within) 'outer'.
-// Does not attempt to do the reverse (i.e. to overlap 'outer' upon 'inner').
-// The 'padding' parameter insets 'inner' by 'padding' pixels within 'outer', i.e. adds a clear margin.
-// Will obviously not be possible if inner is larger than outer in either dimension;
-//      in this situation, the inner rect will be returned unchanged.
-// This function is useful for ensuring that a given rect is fully visible within another (e.g. is fully on-screen).
+/*
+ Moves 'inner' rect the minimum distance to ensure it fully overlaps (is contained within) 'outer'.
+ Does not attempt to do the reverse (i.e. to overlap 'outer' upon 'inner').
+ The 'padding' parameter insets 'inner' by 'padding' pixels within 'outer', i.e. adds a clear margin.
+ Will obviously not be possible if inner is larger than outer in either dimension;
+      in this situation, the inner rect will be returned unchanged.
+ This function is useful for ensuring that a given rect is fully visible within another (e.g. is fully on-screen).
+*/
+ 
 CGRect MGMinimallyOverlapRects(CGRect inner, CGRect outer, CGFloat padding)
 {
     CGRect newInner = inner;
@@ -471,7 +536,8 @@ CGGradientRef MGCreateGradientWithColors(UIColor *topColorRGB, UIColor *bottomCo
 		}
 		
 		if (!drawnBackground && [_delegate respondsToSelector:@selector(gradientForTile:inMenu:)]) {
-			CGGradientRef gradient = [_delegate gradientForTile:tileNumber inMenu:self];
+			CGGradientRef gradient = [_delegate gradientForTile:tileNumber
+														 inMenu:self];
 			if (gradient != NULL) {
 				CGContextDrawLinearGradient(context, gradient, start, end, 0);
 				drawnBackground = YES;
@@ -479,7 +545,8 @@ CGGradientRef MGCreateGradientWithColors(UIColor *topColorRGB, UIColor *bottomCo
 		}
 		
 		if (!drawnBackground && [_delegate respondsToSelector:@selector(colorForTile:inMenu:)]) {
-			UIColor *color = [_delegate colorForTile:tileNumber inMenu:self];
+			UIColor *color = [_delegate colorForTile:tileNumber
+											  inMenu:self];
 			if (color != nil) {
 				[color set];
 				UIRectFill(pathBoundsRect);
@@ -540,6 +607,7 @@ CGGradientRef MGCreateGradientWithColors(UIColor *topColorRGB, UIColor *bottomCo
 	// Send notification.
 	NSDictionary *info = [NSDictionary dictionaryWithObject:[NSNumber numberWithInteger:tileNumber] 
 													 forKey:MGTileNumberKey];
+	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MGTileMenuDidActivateTileNotification 
 														object:self 
 													  userInfo:info];
@@ -584,19 +652,25 @@ CGGradientRef MGCreateGradientWithColors(UIColor *topColorRGB, UIColor *bottomCo
 													  userInfo:info];
 }
 
+#pragma mark - Displaying and Dismissing the Menu
 
-#pragma mark - Displaying and dismissing the menu
+// Display the menu. Returns the actual center-point used (may be shifted
+// from centerPt to fit fully on-screen, if possible).
 
-
-// Display the menu. Returns the actual center-point used (may be shifted from centerPt to fit fully on-screen, if possible).
-- (CGPoint)displayMenuCenteredOnPoint:(CGPoint)centerPt inView:(UIView *)parentView
+- (CGPoint)displayMenuCenteredOnPoint:(CGPoint)centerPt
+							   inView:(UIView *)parentView
 {
-	return [self displayMenuPage:0 centeredOnPoint:centerPt inView:parentView];
+	return [self displayMenuPage:0
+				 centeredOnPoint:centerPt
+						  inView:parentView];
 }
 
 
 // As above, with the menu already displaying the specified 'page' of tiles.
-- (CGPoint)displayMenuPage:(NSInteger)pageNum centeredOnPoint:(CGPoint)centerPt inView:(UIView *)parentView
+
+- (CGPoint)displayMenuPage:(NSInteger)pageNum
+		   centeredOnPoint:(CGPoint)centerPt
+					inView:(UIView *)parentView
 {
 	if (!parentView) {
 		return CGPointZero;
@@ -662,18 +736,20 @@ CGGradientRef MGCreateGradientWithColors(UIColor *topColorRGB, UIColor *bottomCo
 	
 	if (!_rightHanded) {
 		// Switch to counterclockwise-from-right animation order.
-		_animationOrder = [NSMutableArray arrayWithObjects:
-						   [NSNumber numberWithInteger:4], 
-						   [NSNumber numberWithInteger:2], 
-						   [NSNumber numberWithInteger:1], 
-						   [NSNumber numberWithInteger:0], 
-						   [NSNumber numberWithInteger:3], 
-						   nil];
+		_animationOrder = [NSMutableArray arrayWithArray:
+						   @[
+							[NSNumber numberWithInteger:4],
+							[NSNumber numberWithInteger:2],
+							[NSNumber numberWithInteger:1],
+							[NSNumber numberWithInteger:0],
+							[NSNumber numberWithInteger:3],
+						   ]];
 	}
 	
 	// Alter animation order for the extra tile.
 	if (_singlePageMaxTiles && _animationOrder.count == MG_TILES_PER_PAGE) {
-		[_animationOrder insertObject:[NSNumber numberWithInteger:5] atIndex:0];
+		[_animationOrder insertObject:[NSNumber numberWithInteger:5]
+							  atIndex:0];
 	}
 	
 	// Configure and display appropriate page of menu.

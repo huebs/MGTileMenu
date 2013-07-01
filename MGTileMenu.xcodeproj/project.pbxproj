@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		34F96E2D1736DCE6003AA25C /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 34F96E2B1736DC88003AA25C /* Default-568h@2x.png */; };
 		C9076AB314D2F79900560118 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C9076AB214D2F79900560118 /* UIKit.framework */; };
 		C9076AB514D2F79900560118 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C9076AB414D2F79900560118 /* Foundation.framework */; };
 		C9076AB714D2F79900560118 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C9076AB614D2F79900560118 /* CoreGraphics.framework */; };
@@ -44,6 +45,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		34F96E2B1736DC88003AA25C /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "../Default-568h@2x.png"; sourceTree = "<group>"; };
 		C9076AAE14D2F79900560118 /* MGTileMenu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MGTileMenu.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9076AB214D2F79900560118 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		C9076AB414D2F79900560118 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -158,6 +160,7 @@
 		C9076AB914D2F79900560118 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				34F96E2B1736DC88003AA25C /* Default-568h@2x.png */,
 				C9076ABA14D2F79900560118 /* MGTileMenu-Info.plist */,
 				C9076ABB14D2F79900560118 /* InfoPlist.strings */,
 				C9076ABE14D2F79900560118 /* main.m */,
@@ -302,7 +305,7 @@
 		C9076AA514D2F79900560118 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0430;
+				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = "Instinctive Code";
 			};
 			buildConfigurationList = C9076AA814D2F79900560118 /* Build configuration list for PBXProject "MGTileMenu" */;
@@ -352,6 +355,7 @@
 				C9082783155D5242002FEA82 /* LICENSE.markdown in Resources */,
 				C9082785155D57CE002FEA82 /* instinctivecode_logo.png in Resources */,
 				C908278A155D5C7C002FEA82 /* instinctivecode_logo@2x.png in Resources */,
+				34F96E2D1736DCE6003AA25C /* Default-568h@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -398,6 +402,10 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -411,6 +419,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				SDKROOT = iphoneos;
@@ -424,12 +433,17 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";

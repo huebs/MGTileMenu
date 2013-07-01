@@ -12,17 +12,21 @@
 
 @implementation MLGAppDelegate
 
-@synthesize window = _window;
-@synthesize viewController = _viewController;
+@synthesize window, viewController;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+	
     // Override point for customization after application launch.
-    self.viewController = [[MLGViewController alloc] initWithNibName:@"MLGViewController" bundle:nil];
-    self.window.rootViewController = self.viewController;
-    [self.window makeKeyAndVisible];
-    return YES;
+    self.viewController = [[MLGViewController alloc] initWithNibName:@"MLGViewController"
+															  bundle:nil];
+    
+	self.window.rootViewController = self.viewController;
+    
+	[self.window makeKeyAndVisible];
+    
+	return YES;
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application

@@ -13,7 +13,6 @@
 @interface MLGAppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
-
 @property (strong, nonatomic) MLGViewController *viewController;
 
 @end
